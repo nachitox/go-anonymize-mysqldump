@@ -296,7 +296,14 @@ func modifyValues(values sqlparser.Values, pattern ConfigPattern) (sqlparser.Val
 			// Position is 1 indexed instead of 0, so let's subtract 1 in order to get
 			// it to line up with the value inside the ValTuple inside of values.Values
 			valTupleIndex := fieldPattern.Position - 1
-			value := values[row][valTupleIndex].(*sqlparser.SQLVal)
+			// Ignore NULLs to avoid interface conversion panic
+			var value *sqlparser.SQLVal
+			switch values[row][valTupleIndex].(type) {
+			case *sqlparser.NullVal:
+				continue
+			case *sqlparser.SQLVal:
+				value = values[row][valTupleIndex].(*sqlparser.SQLVal)
+			}
 
 			// Skip transformation if transforming function doesn't exist
 			if transformationFunctionMap[fieldPattern.Type] == nil {
