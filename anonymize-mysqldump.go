@@ -62,6 +62,7 @@ var (
 		"customSocialId":      generateCustomSocialId,
 		"customSocialToken":   generateCustomSocialToken,
 		"libInternetUser":     generateLibInternetUser,
+		"customUniqueUser":    generateCustomUniqueUser,
 		"customPassword":      generateCustomPassword,
 		"customRecoverToken":  generateCustomRecoverToken,
 		"customUserToken":     generateCustomUserToken,
