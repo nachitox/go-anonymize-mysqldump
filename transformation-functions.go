@@ -6,7 +6,12 @@ import (
 	"math/rand"
 	"strings"
 	"syreclabs.com/go/faker"
+	"syreclabs.com/go/faker/locales"
 )
+
+func setCustomLocale() {
+	faker.Locale = locales.De
+}
 
 func generateUsername(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Internet().UserName()))
