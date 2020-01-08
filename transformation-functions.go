@@ -44,6 +44,6 @@ func generateIPv4(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Internet().IpV4Address()))
 }
 
-func generatePhoneNumber(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+func generateCustomPhoneNumber(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(fmt.Sprintf("0%v", faker.Number().Number(rand.Intn(12-7)+7))))
 }
