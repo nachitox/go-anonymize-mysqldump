@@ -5,13 +5,9 @@ import (
 	"github.com/xwb1989/sqlparser"
 	"math/rand"
 	"strings"
-	"syreclabs.com/go/faker"
-	"syreclabs.com/go/faker/locales"
+	"github.com/omnea/faker"
+	"github.com/omnea/faker/locales"
 )
-
-func setCustomLocale() {
-	faker.Locale = locales.De
-}
 
 func generateUsername(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Internet().UserName()))
