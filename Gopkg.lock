@@ -10,12 +10,31 @@
   revision = "1427fe674291a5bc6e207d6bf968cb189205dc75"
 
 [[projects]]
+  digest = "1:6dd01ff6aa599910d0e3bb83d695084c3c3634036d2c42e29f83be2e445296ac"
+  name = "github.com/dmgk/faker"
+  packages = ["locales"]
+  pruneopts = "UT"
+  revision = "ca5d017134d0604dc3ba912dd6de98d6b27b6444"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
   pruneopts = "UT"
   revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
   version = "v1.0.2"
+
+[[projects]]
+  digest = "1:6448a0a5d096f4ad1e8bb07b8e2bc37fd835de4b5f633f3ca50f67dfa97e1439"
+  name = "github.com/omnea/faker"
+  packages = [
+    ".",
+    "locales",
+  ]
+  pruneopts = "UT"
+  revision = "43454d133ca96960e67f5ecb86c9a67d9c7a145a"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:04457f9f6f3ffc5fea48e71d62f2ca256637dee0a04d710288e27e05c8b41976"
@@ -63,6 +82,8 @@
   analyzer-version = 1
   input-imports = [
     "github.com/akamensky/argparse",
+    "github.com/omnea/faker",
+    "github.com/omnea/faker/locales",
     "github.com/sirupsen/logrus",
     "github.com/xwb1989/sqlparser",
     "syreclabs.com/go/faker",
