@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"syreclabs.com/go/faker"
+	"github.com/omnea/faker"
 	"testing"
 )
 
