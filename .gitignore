@@ -1,2 +1,4 @@
 build
 go-anonymize-mysqldump
+vendor/*
+.circleci/*
