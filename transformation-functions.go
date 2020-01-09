@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/omnea/faker"
+	"github.com/omnea/faker/locales"
 	"github.com/xwb1989/sqlparser"
 	"math/rand"
 	"strings"
-	"github.com/omnea/faker"
-	"github.com/omnea/faker/locales"
 )
 
 func generateUsername(value *sqlparser.SQLVal) *sqlparser.SQLVal {
