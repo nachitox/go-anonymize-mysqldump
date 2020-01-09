@@ -70,6 +70,10 @@ func generateLibStreet(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Address().StreetName()))
 }
 
+func generateCustomStreet(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	return sqlparser.NewStrVal([]byte(faker.Address().StreetName()))
+}
+
 func generateLibBuildingNumber(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Address().BuildingNumber()))
 }
@@ -88,6 +92,10 @@ func generateLibState(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 
 func generateLibCountry(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Address().Country()))
+}
+
+func generateCustomCountry(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	return sqlparser.NewStrVal([]byte("Deutschland"))
 }
 
 func generateLibParagraph(value *sqlparser.SQLVal) *sqlparser.SQLVal {
