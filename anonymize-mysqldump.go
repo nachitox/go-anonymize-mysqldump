@@ -85,6 +85,8 @@ func init() {
 	}
 	// set global log level
 	logrus.SetLevel(ll)
+
+	setLocale("de")
 }
 
 func main() {
