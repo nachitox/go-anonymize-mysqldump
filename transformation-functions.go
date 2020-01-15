@@ -41,6 +41,10 @@ func generateParagraph(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Lorem().Sentence(3)))
 }
 
+func generateCustomTitle(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	return sqlparser.NewStrVal([]byte(faker.Lorem().Word()))
+}
+
 func generateIPv4(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Internet().IpV4Address()))
 }

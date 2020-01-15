@@ -61,6 +61,7 @@ var (
 		"libCountry":           generateLibCountry,
 		"customCountry":        generateCustomCountry,
 		"libParagraph":         generateLibParagraph,
+		"customTitle":          generateCustomTitle,
 		"customSocialNetwork":  generateCustomSocialNetwork,
 		"customSocialId":       generateCustomSocialId,
 		"customSocialToken":    generateCustomSocialToken,
