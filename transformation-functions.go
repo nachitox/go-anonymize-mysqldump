@@ -73,6 +73,10 @@ func generateLibBuildingNumber(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Address().BuildingNumber()))
 }
 
+func generateLibAdditionalAddress(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	return sqlparser.NewStrVal([]byte(faker.Address().SecondaryAddress()))
+}
+
 func generateLibCity(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Address().City()))
 }
