@@ -34,42 +34,41 @@ type PatternFieldConstraint struct {
 	Field    string `json:"field"`
 	Position int    `json:"position"`
 	Value    string `json:"value"`
+	Match    string `json:"match"`
 }
 
 var (
 	transformationFunctionMap = map[string]func(*sqlparser.SQLVal) *sqlparser.SQLVal{
-		"username":             generateUsername,
-		"password":             generatePassword,
-		"email":                generateEmail,
-		"url":                  generateURL,
-		"name":                 generateName,
-		"firstName":            generateFirstName,
-		"lastName":             generateLastName,
-		"paragraph":            generateParagraph,
-		"ipv4":                 generateIPv4,
-		"customPhoneNumber":    generateCustomPhoneNumber,
-		"customUserAgent":      generateCustomUserAgent,
-		"libPrefix":            generateLibPrefix,
-		"libCompanyName":       generateLibCompanyName,
-		"libStreet":            generateLibStreet,
-		"customStreet":         generateCustomStreet,
-		"libBuildingNumber":    generateLibBuildingNumber,
-		"libAdditionalAddress": generateLibAdditionalAddress,
-		"libCity":              generateLibCity,
-		"libZip":               generateLibZip,
-		"libState":             generateLibState,
-		"libCountry":           generateLibCountry,
-		"customCountry":        generateCustomCountry,
-		"libParagraph":         generateLibParagraph,
-		"customTitle":          generateCustomTitle,
-		"customSocialNetwork":  generateCustomSocialNetwork,
-		"customSocialId":       generateCustomSocialId,
-		"customSocialToken":    generateCustomSocialToken,
-		"libInternetUser":      generateLibInternetUser,
-		"customUniqueUser":     generateCustomUniqueUser,
-		"customPassword":       generateCustomPassword,
-		"customRecoverToken":   generateCustomRecoverToken,
-		"customUserToken":      generateCustomUserToken,
+		"username":            generateUsername,
+		"password":            generatePassword,
+		"email":               generateEmail,
+		"url":                 generateURL,
+		"name":                generateName,
+		"firstName":           generateFirstName,
+		"lastName":            generateLastName,
+		"paragraph":           generateParagraph,
+		"ipv4":                generateIPv4,
+		"customPhoneNumber":   generateCustomPhoneNumber,
+		"customUserAgent":     generateCustomUserAgent,
+		"libPrefix":           generateLibPrefix,
+		"libCompanyName":      generateLibCompanyName,
+		"libStreet":           generateLibStreet,
+		"customStreet":        generateCustomStreet,
+		"libBuildingNumber":   generateLibBuildingNumber,
+		"libCity":             generateLibCity,
+		"libZip":              generateLibZip,
+		"libState":            generateLibState,
+		"libCountry":          generateLibCountry,
+		"customCountry":       generateCustomCountry,
+		"libParagraph":        generateLibParagraph,
+		"customSocialNetwork": generateCustomSocialNetwork,
+		"customSocialId":      generateCustomSocialId,
+		"customSocialToken":   generateCustomSocialToken,
+		"libInternetUser":     generateLibInternetUser,
+		"customUniqueUser":    generateCustomUniqueUser,
+		"customPassword":      generateCustomPassword,
+		"customRecoverToken":  generateCustomRecoverToken,
+		"customUserToken":     generateCustomUserToken,
 	}
 )
 
@@ -370,9 +369,25 @@ func rowObeysConstraints(constraints []PatternFieldConstraint, row sqlparser.Val
 		logrus.WithFields(logrus.Fields{
 			"parsedValue":      parsedValue,
 			"constraint.value": constraint.Value,
+			"constraint.match": constraint.Match,
 		}).Trace("Debuging constraint obediance: ")
-		if parsedValue != constraint.Value {
-			return false
+		switch constraint.Match {
+		case "equal":
+			if parsedValue != constraint.Value {
+				return false
+			}
+		case "not_equal":
+			if parsedValue == constraint.Value {
+				return false
+			}
+		case "contains":
+			if !strings.Contains(parsedValue, constraint.Value) {
+				return false
+			}
+		case "not_contains":
+			if strings.Contains(parsedValue, constraint.Value) {
+				return false
+			}
 		}
 	}
 	return true
