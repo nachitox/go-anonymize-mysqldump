@@ -122,7 +122,7 @@ func generateLibInternetUser(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 }
 
 func generateCustomUniqueUser(value *sqlparser.SQLVal) *sqlparser.SQLVal {
-	return sqlparser.NewStrVal([]byte(fmt.Sprintf("%v-%v", faker.Internet().UserName(), faker.RandomString(16))))
+	return sqlparser.NewStrVal([]byte(fmt.Sprintf("%v.%v", faker.RandomString(16), faker.Internet().SafeEmail())))
 }
 
 func generateCustomPassword(value *sqlparser.SQLVal) *sqlparser.SQLVal {
