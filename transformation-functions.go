@@ -41,6 +41,10 @@ func generateParagraph(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Lorem().Sentence(3)))
 }
 
+func generateCustomTitle(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	return sqlparser.NewStrVal([]byte(faker.Lorem().Word()))
+}
+
 func generateIPv4(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Internet().IpV4Address()))
 }
@@ -71,6 +75,10 @@ func generateCustomStreet(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 
 func generateLibBuildingNumber(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Address().BuildingNumber()))
+}
+
+func generateLibAdditionalAddress(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	return sqlparser.NewStrVal([]byte(faker.Address().SecondaryAddress()))
 }
 
 func generateLibCity(value *sqlparser.SQLVal) *sqlparser.SQLVal {
@@ -114,7 +122,7 @@ func generateLibInternetUser(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 }
 
 func generateCustomUniqueUser(value *sqlparser.SQLVal) *sqlparser.SQLVal {
-	return sqlparser.NewStrVal([]byte(fmt.Sprintf("%v-%v", faker.Internet().UserName(), faker.RandomString(16))))
+	return sqlparser.NewStrVal([]byte(fmt.Sprintf("%v.%v", faker.RandomString(16), faker.Internet().SafeEmail())))
 }
 
 func generateCustomPassword(value *sqlparser.SQLVal) *sqlparser.SQLVal {

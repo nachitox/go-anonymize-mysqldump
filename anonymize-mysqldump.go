@@ -34,6 +34,7 @@ type PatternFieldConstraint struct {
 	Field    string `json:"field"`
 	Position int    `json:"position"`
 	Value    string `json:"value"`
+	Match    string `json:"match"`
 }
 
 var (
@@ -368,9 +369,25 @@ func rowObeysConstraints(constraints []PatternFieldConstraint, row sqlparser.Val
 		logrus.WithFields(logrus.Fields{
 			"parsedValue":      parsedValue,
 			"constraint.value": constraint.Value,
+			"constraint.match": constraint.Match,
 		}).Trace("Debuging constraint obediance: ")
-		if parsedValue != constraint.Value {
-			return false
+		switch constraint.Match {
+		case "equal":
+			if parsedValue != constraint.Value {
+				return false
+			}
+		case "not_equal":
+			if parsedValue == constraint.Value {
+				return false
+			}
+		case "contains":
+			if !strings.Contains(parsedValue, constraint.Value) {
+				return false
+			}
+		case "not_contains":
+			if strings.Contains(parsedValue, constraint.Value) {
+				return false
+			}
 		}
 	}
 	return true
