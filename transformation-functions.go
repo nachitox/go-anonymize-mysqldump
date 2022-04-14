@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+func generateId(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	return sqlparser.NewStrVal([]byte(faker.Number().Number(12)))
+}
+
 func generateUsername(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Internet().UserName()))
 }

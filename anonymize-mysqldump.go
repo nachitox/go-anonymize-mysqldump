@@ -39,6 +39,7 @@ type PatternFieldConstraint struct {
 
 var (
 	transformationFunctionMap = map[string]func(*sqlparser.SQLVal) *sqlparser.SQLVal{
+		"id":					generateId,
 		"username":             generateUsername,
 		"password":             generatePassword,
 		"email":                generateEmail,
