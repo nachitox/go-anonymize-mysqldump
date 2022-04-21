@@ -28,6 +28,7 @@ type PatternField struct {
 	Position    int                      `json:"position"`
 	Type        string                   `json:"type"`
 	Constraints []PatternFieldConstraint `json:"constraints"`
+	Unique      bool                     `json:"unique"`
 }
 
 type PatternFieldConstraint struct {
@@ -37,8 +38,14 @@ type PatternFieldConstraint struct {
 	Match    string `json:"match"`
 }
 
+type SafeMap struct {
+	// uniqueMap.v[Field][SQLVal]
+	v map[string]map[string]bool
+	m sync.RWMutex
+}
+
 var (
-	transformationFunctionMap = map[string]func(*sqlparser.SQLVal) *sqlparser.SQLVal{
+	transformationFunctionMap = map[string]func(*sqlparser.SQLVal) *sqlparser.SQLVal {
 		"id":					generateId,
 		"username":             generateUsername,
 		"password":             generatePassword,
@@ -73,6 +80,9 @@ var (
 		"libAdditionalAddress": generateLibAdditionalAddress,
 		"customTitle":          generateCustomTitle,
 	}
+	// I expect dump being in order
+	uniqueMap SafeMap
+	currentTable string
 )
 
 // Many thanks to https://stackoverflow.com/a/47515580/1454045
@@ -291,6 +301,9 @@ func applyConfigToInserts(stmt *sqlparser.Insert, config Config) (*sqlparser.Ins
 		return stmt, nil
 	}
 
+	// Clean unique map to save resources
+	setCurrentTable(stmt.Table.Name.String())
+
 	// Iterate over the specified configs and see if this statement matches any
 	// of the desired changes
 	// TODO make this use goroutines
@@ -324,12 +337,17 @@ func modifyValues(values sqlparser.Values, pattern ConfigPattern) (sqlparser.Val
 			// it to line up with the value inside the ValTuple inside of values.Values
 			valTupleIndex := fieldPattern.Position - 1
 			// Ignore NULLs to avoid interface conversion panic
-			var value *sqlparser.SQLVal
+			var (
+				i int = 0
+				proposedValue, value *sqlparser.SQLVal
+				uniqueLimit int = 100
+				valueString string
+			)
 			switch values[row][valTupleIndex].(type) {
-			case *sqlparser.NullVal:
-				continue
-			case *sqlparser.SQLVal:
-				value = values[row][valTupleIndex].(*sqlparser.SQLVal)
+				case *sqlparser.NullVal:
+					continue
+				case *sqlparser.SQLVal:
+					value = values[row][valTupleIndex].(*sqlparser.SQLVal)
 			}
 
 			// Skip transformation if transforming function doesn't exist
@@ -354,9 +372,37 @@ func modifyValues(values sqlparser.Values, pattern ConfigPattern) (sqlparser.Val
 				continue
 			}
 
-			values[row][valTupleIndex] = transformationFunctionMap[fieldPattern.Type](value)
-		}
+			// Set unique map current field
+			setCurrentField(fieldPattern.Field)
 
+			for {
+				proposedValue = transformationFunctionMap[fieldPattern.Type](value)
+				valueString = convertSQLValToString(proposedValue)
+
+				uniqueMap.m.Lock()
+				_, exists := uniqueMap.v[fieldPattern.Field][valueString]
+				uniqueMap.m.Unlock()
+
+				if !fieldPattern.Unique || !exists {
+					values[row][valTupleIndex] = proposedValue
+
+					uniqueMap.m.Lock()
+					uniqueMap.v[fieldPattern.Field][valueString] = true
+					uniqueMap.m.Unlock()
+
+					break
+				} else if i >= uniqueLimit {
+					logrus.WithFields(logrus.Fields{
+						"type":  fieldPattern.Type,
+						"field": fieldPattern.Field,
+					}).Error("Failed applying unique transformation for field")
+
+					break
+				}
+
+				i++
+			}
+		}
 	}
 
 	// values[0][0] = sqlparser.NewStrVal([]byte("Foobar"))
@@ -375,22 +421,23 @@ func rowObeysConstraints(constraints []PatternFieldConstraint, row sqlparser.Val
 			"constraint.match": constraint.Match,
 		}).Trace("Debuging constraint obediance: ")
 		switch constraint.Match {
-		case "equal":
-			if parsedValue != constraint.Value {
-				return false
-			}
-		case "not_equal":
-			if parsedValue == constraint.Value {
-				return false
-			}
-		case "contains":
-			if !strings.Contains(parsedValue, constraint.Value) {
-				return false
-			}
-		case "not_contains":
-			if strings.Contains(parsedValue, constraint.Value) {
-				return false
-			}
+			default:
+			case "equal":
+				if parsedValue != constraint.Value {
+					return false
+				}
+			case "not_equal":
+				if parsedValue == constraint.Value {
+					return false
+				}
+			case "contains":
+				if !strings.Contains(parsedValue, constraint.Value) {
+					return false
+				}
+			case "not_contains":
+				if strings.Contains(parsedValue, constraint.Value) {
+					return false
+				}
 		}
 	}
 	return true
@@ -407,6 +454,7 @@ func convertSQLValToString(value *sqlparser.SQLVal) string {
 	}
 	return string(bytes)
 }
+
 func recompileStatementToSQL(stmt sqlparser.Statement) (string, error) {
 	// TODO Potentially replace with BuildParsedQuery
 	buf := sqlparser.NewTrackedBuffer(nil)
@@ -418,4 +466,25 @@ func recompileStatementToSQL(stmt sqlparser.Statement) (string, error) {
 		return "", err
 	}
 	return string(bytes) + ";\n", nil
+}
+
+func setCurrentTable(tableName string) {
+	if tableName != currentTable {
+		currentTable = tableName
+
+		uniqueMap.m.Lock()
+		uniqueMap.v = map[string]map[string]bool{}
+		uniqueMap.m.Unlock()
+	}
+}
+
+func setCurrentField(fieldName string) {
+	uniqueMap.m.Lock()
+
+	_, exists := uniqueMap.v[fieldName]
+	if !exists {
+		uniqueMap.v[fieldName] = map[string]bool{}
+	}
+
+	uniqueMap.m.Unlock()
 }
