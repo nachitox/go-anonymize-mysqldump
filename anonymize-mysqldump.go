@@ -14,6 +14,8 @@ import (
 	"sync"
 )
 
+const VERSION = "202204220832"
+
 type Config struct {
 	Patterns []ConfigPattern `json:"patterns"`
 }
@@ -130,14 +132,21 @@ func setupAndProcessInput(config Config, input io.Reader) chan chan string {
 
 func parseArgs() Config {
 	parser := argparse.NewParser("anonymize-mysqldump", "Reads SQL from STDIN and replaces content for anonymity based on the provided config.")
-	configFilePath := parser.String("c", "config", &argparse.Options{Required: true, Help: "Path to config.json"})
+	configFilePath := parser.String("c", "config", &argparse.Options{Required: false, Help: "Path to config.json"})
+	var version *bool = parser.Flag("V", "version", &argparse.Options{Required: false, Help: "print the version number and exit"})
 
 	err := parser.Parse(os.Args)
-	if err != nil {
+
+	if err != nil || (!*version && *configFilePath == "") {
 		// In case of error print error and print usage
 		// This can also be done by passing -h or --help flags
-		fmt.Print(parser.Usage(err))
+		fmt.Print(parser.Usage(err), "\n")
 		os.Exit(1)
+	}
+
+	if *version {
+		fmt.Print(VERSION, "\n")
+		os.Exit(0)
 	}
 
 	return readConfigFile(*configFilePath)
