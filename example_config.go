@@ -25,7 +25,7 @@ var ExampleWordPressConfig = Config{
 				},
 				{
 					Field:       "user_email",
-					Type:        "email",
+					Type:        "safeEmail",
 					Position:    5,
 					Constraints: nil,
 				},
@@ -107,7 +107,7 @@ var ExampleWordPressConfig = Config{
 				},
 				{
 					Field:       "comment_author_email",
-					Type:        "email",
+					Type:        "safeEmail",
 					Position:    4,
 					Constraints: nil,
 				},

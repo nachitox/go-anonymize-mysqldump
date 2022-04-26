@@ -14,7 +14,7 @@ import (
 	"sync"
 )
 
-const VERSION = "202204220832"
+const VERSION = "202204261000"
 
 type Config struct {
 	Patterns []ConfigPattern `json:"patterns"`
@@ -48,10 +48,13 @@ type SafeMap struct {
 
 var (
 	transformationFunctionMap = map[string]func(*sqlparser.SQLVal) *sqlparser.SQLVal {
-		"id":					generateId,
+		"id":                   generateId,
 		"username":             generateUsername,
 		"password":             generatePassword,
 		"email":                generateEmail,
+		"freeEmail":            generateFreeEmail,
+		"randomEmail":          generateRandomEmail,
+		"safeEmail":            generateSafeEmail,
 		"url":                  generateURL,
 		"name":                 generateName,
 		"firstName":            generateFirstName,

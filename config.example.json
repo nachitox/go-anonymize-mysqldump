@@ -24,7 +24,7 @@
         {
           "field": "user_email",
           "position": 5,
-          "type": "email",
+          "type": "safeEmail",
           "constraints": null
         },
         {
@@ -106,7 +106,7 @@
         {
           "field": "comment_author_email",
           "position": 4,
-          "type": "email",
+          "type": "safeEmail",
           "constraints": null
         },
         {

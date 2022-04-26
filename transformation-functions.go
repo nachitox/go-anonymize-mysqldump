@@ -22,6 +22,31 @@ func generatePassword(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 }
 
 func generateEmail(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	return sqlparser.NewStrVal([]byte(faker.Internet().Email()))
+}
+
+func generateFreeEmail(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	return sqlparser.NewStrVal([]byte(faker.Internet().FreeEmail()))
+}
+
+func generateRandomEmail(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	var email string
+
+	switch rand.Intn(3) {
+		case 0:
+			email = faker.Internet().Email()
+
+		case 1:
+			email = faker.Internet().FreeEmail()
+
+		case 2:
+			email = faker.Internet().SafeEmail()
+	}
+
+	return sqlparser.NewStrVal([]byte(email))
+}
+
+func generateSafeEmail(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Internet().SafeEmail()))
 }
 
