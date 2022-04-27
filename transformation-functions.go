@@ -43,7 +43,7 @@ func generateRandomEmail(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 			email = faker.Internet().SafeEmail()
 	}
 
-	return sqlparser.NewStrVal([]byte(email))
+	return sqlparser.NewStrVal([]byte(strings.Replace(email, "@", faker.RandomString(16) + "@", 1)))
 }
 
 func generateSafeEmail(value *sqlparser.SQLVal) *sqlparser.SQLVal {
