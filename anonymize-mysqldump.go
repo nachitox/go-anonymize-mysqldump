@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/akamensky/argparse"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 	"github.com/xwb1989/sqlparser"
 	"io"
@@ -14,7 +16,7 @@ import (
 	"sync"
 )
 
-const VERSION = "202204261000"
+const VERSION = "202204271708"
 
 type Config struct {
 	Patterns []ConfigPattern `json:"patterns"`
@@ -41,8 +43,7 @@ type PatternFieldConstraint struct {
 }
 
 type SafeMap struct {
-	// uniqueMap.v[Field][SQLVal]
-	v map[string]map[string]bool
+	db *sql.DB
 	m sync.RWMutex
 }
 
@@ -111,11 +112,37 @@ func init() {
 func main() {
 	config := parseArgs()
 
+	setupDb()
 	lines := setupAndProcessInput(config, os.Stdin)
 
 	for line := range lines {
 		fmt.Print(<-line)
 	}
+}
+
+// create DB for unique map
+func setupDb() {
+	db, err := sql.Open("sqlite3", "map.db")
+
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("Error opening sqlite3 connection")
+	}
+
+	const create string = `
+	CREATE TABLE IF NOT EXISTS map (
+		field TEXT,
+		value TEXT
+	);`
+
+	if _, err := db.Exec(create); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("Error creating the DB")
+	}
+
+	uniqueMap.db = db
 }
 
 func setupAndProcessInput(config Config, input io.Reader) chan chan string {
@@ -258,7 +285,7 @@ func processLine(line string, config Config) string {
 		// TODO Add line number to log
 		logrus.WithFields(logrus.Fields{
 			"error": err,
-			"line":  line,
+			"line": line,
 		}).Error("Failed parsing line with error: ")
 		return line
 	}
@@ -391,22 +418,19 @@ func modifyValues(values sqlparser.Values, pattern ConfigPattern) (sqlparser.Val
 				proposedValue = transformationFunctionMap[fieldPattern.Type](value)
 				valueString = convertSQLValToString(proposedValue)
 
-				uniqueMap.m.Lock()
-				_, exists := uniqueMap.v[fieldPattern.Field][valueString]
-				uniqueMap.m.Unlock()
+				exists := checkMapExists(fieldPattern.Field, valueString)
 
 				if !fieldPattern.Unique || !exists {
 					values[row][valTupleIndex] = proposedValue
 
-					uniqueMap.m.Lock()
-					uniqueMap.v[fieldPattern.Field][valueString] = true
-					uniqueMap.m.Unlock()
+					setMapValue(fieldPattern.Field, valueString)
 
 					break
 				} else if i >= uniqueLimit {
 					logrus.WithFields(logrus.Fields{
-						"type":  fieldPattern.Type,
+						"type": fieldPattern.Type,
 						"field": fieldPattern.Field,
+						"value": valueString,
 					}).Error("Failed applying unique transformation for field")
 
 					break
@@ -484,18 +508,69 @@ func setCurrentTable(tableName string) {
 	if tableName != currentTable {
 		currentTable = tableName
 
-		uniqueMap.m.Lock()
-		uniqueMap.v = map[string]map[string]bool{}
-		uniqueMap.m.Unlock()
+		_, err := uniqueMap.db.Exec("DELETE FROM map;")
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("Error truncating map")
+		}
 	}
 }
 
 func setCurrentField(fieldName string) {
+}
+
+func checkMapExists(field string, value string) bool {
+	uniqueMap.m.Lock()
+	
+	var (
+		output int
+		exists bool
+	)
+
+	query, err := uniqueMap.db.Prepare("SELECT COUNT(1) FROM map WHERE field = ? AND value = ?")
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"field": field,
+			"value": value,
+			"error": err,
+		}).Error("Error preparing count")
+	}
+
+	defer query.Close()
+
+	err = query.QueryRow(field, value).Scan(&output)
+	switch {
+		case err == sql.ErrNoRows:
+			exists = false
+
+		case err != nil:
+			exists = false
+			logrus.WithFields(logrus.Fields{
+				"field": field,
+				"value": value,
+				"error": err,
+			}).Error("Error calling count")
+
+		default:
+			exists = output > 0
+	}
+	
+	uniqueMap.m.Unlock()
+
+	return exists
+}
+
+func setMapValue(field string, value string) {
 	uniqueMap.m.Lock()
 
-	_, exists := uniqueMap.v[fieldName]
-	if !exists {
-		uniqueMap.v[fieldName] = map[string]bool{}
+	_, err := uniqueMap.db.Exec("INSERT INTO map VALUES(?,?);", field, value)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"field": field,
+			"value": value,
+			"error": err,
+		}).Error("Error inserting into map")
 	}
 
 	uniqueMap.m.Unlock()

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"github.com/omnea/faker"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -39,6 +40,7 @@ var (
 
 func init() {
 	faker.Seed(432)
+	setupDb()
 	jsonConfig = readConfigFile("./config.example.json")
 }
 
@@ -100,4 +102,12 @@ func TestSetupAndProcessInput(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUniqueMap(t *testing.T) {
+
+	assert.False(t, checkMapExists("field", "value"), "Value should not exist")
+
+	setMapValue("field", "value")
+	assert.True(t, checkMapExists("field", "value"), "Value should exist now")
 }

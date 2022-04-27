@@ -1,5 +1,7 @@
 build
 go-anonymize-mysqldump
+map.db
+pkg/
 src/
 vendor/*
 .circleci/*
