@@ -40,7 +40,6 @@ var (
 
 func init() {
 	faker.Seed(432)
-	setupDb()
 	jsonConfig = readConfigFile("./config.example.json")
 }
 
@@ -105,6 +104,8 @@ func TestSetupAndProcessInput(t *testing.T) {
 }
 
 func TestUniqueMap(t *testing.T) {
+	setCurrentTable("t")
+	setCurrentField("field")
 
 	assert.False(t, checkMapExists("field", "value"), "Value should not exist")
 
