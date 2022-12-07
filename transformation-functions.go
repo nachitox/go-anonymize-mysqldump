@@ -165,3 +165,7 @@ func generateCustomRecoverToken(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 func generateCustomUserToken(value *sqlparser.SQLVal) *sqlparser.SQLVal {
 	return sqlparser.NewStrVal([]byte(faker.Internet().Password(8, 20)))
 }
+
+func generateStaticValue(value *sqlparser.SQLVal) *sqlparser.SQLVal {
+	return value
+}

@@ -34,6 +34,13 @@
           "constraints": null
         },
         {
+          "field": "user_activation_key",
+          "position": 8,
+          "type": "static",
+          "constraints": null,
+          "value": "UAK-0001"
+        },
+        {
           "field": "display_name",
           "position": 10,
           "type": "name",

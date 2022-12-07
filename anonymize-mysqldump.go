@@ -14,7 +14,7 @@ import (
 	"sync"
 )
 
-const VERSION = "202205091106"
+const VERSION = "202212071734"
 
 type Config struct {
 	Patterns []ConfigPattern `json:"patterns"`
@@ -31,6 +31,7 @@ type PatternField struct {
 	Type        string                   `json:"type"`
 	Constraints []PatternFieldConstraint `json:"constraints"`
 	Unique      bool                     `json:"unique"`
+	Value       string                   `json:"value"`
 }
 
 type PatternFieldConstraint struct {
@@ -83,6 +84,7 @@ var (
 		"customUserToken":      generateCustomUserToken,
 		"libAdditionalAddress": generateLibAdditionalAddress,
 		"customTitle":          generateCustomTitle,
+		"static":				generateStaticValue,
 	}
 	// I expect dump being in order
 	uniqueMap SafeMap
@@ -387,6 +389,11 @@ func modifyValues(values sqlparser.Values, pattern ConfigPattern) (sqlparser.Val
 			setCurrentField(fieldPattern.Field)
 
 			for {
+				// Static value special case
+				if fieldPattern.Type == "static" {
+					value = sqlparser.NewStrVal([]byte(fieldPattern.Value))
+				}
+
 				proposedValue = transformationFunctionMap[fieldPattern.Type](value)
 				valueString = convertSQLValToString(proposedValue)
 
